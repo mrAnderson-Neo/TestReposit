@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "DataStorage.fillInUsers():DataStorage.swift">
+      </ContextState>
+      <ContextState
+         contextName = "ViewControllerFriends.tableView(_:didSelectRowAt:):ViewControllerFriends.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "arraySectionsOfUsers[indexPath.section].user[indexPath.row]">
+            </PersistentString>
+            <PersistentString
+               value = "arraySectionsOfUsers[indexPath.section].user[indexPath.row].idUser">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "ViewControllerForFotosFriends.collectionView(_:cellForItemAt:):ViewControllerForFotosFriends.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "imageViewFoto.constraints[0]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "CollectionViewCellForFotosOfUser.configure(imageFoto:numb:):CollectionViewCellForFotosOfUser.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "imageViewFoto.constraints[0]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>
