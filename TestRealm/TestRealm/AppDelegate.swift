@@ -11,6 +11,7 @@ import RealmSwift
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
+    var token: NotificationToken?
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
@@ -50,8 +51,54 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let realm = try Realm(configuration: config)
             print(realm.configuration.fileURL)
             realm.beginWrite()
-            realm.add(arr, update: .all)
+            realm.add(testEntity, update: .all)
             try realm.commitWrite()
+            
+//            token = testEntity.observe({ (change) in
+//                switch change {
+//                case .change(let proprties):
+//                    print(proprties)
+//                case .deleted:
+//                    print("delete")
+//                case .error(let error):
+//                    print(error)
+//                }
+//            })
+            
+            let arrDataFromRealm = realm.objects(TestEntity.self)
+            
+            token = arrDataFromRealm.observe({ (changes: RealmCollectionChange) in
+                switch changes {
+                case .initial(let result):
+                    print("inital")
+                    print(result)
+                case .update(let result, let deletions, let insertions, let modifications):
+                    print("update")
+                    print("Modific")
+                    print(modifications)
+                    print("insertions")
+                    print(insertions)
+                    print(result, deletions, insertions, modifications)
+                case .error(let error):
+                    print(error)
+                }
+            })
+            
+            DispatchQueue.main.async {
+                for count in 1...3 {
+                    do {
+                        realm.beginWrite()
+                        testEntity.age += count
+                        try realm.commitWrite()
+                    } catch {
+                        print(error)
+                    }
+                    sleep(2)
+                }
+                
+            }
+            
+           
             
         } catch {
             print(error)

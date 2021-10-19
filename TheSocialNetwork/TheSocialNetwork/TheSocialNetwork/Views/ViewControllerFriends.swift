@@ -12,16 +12,22 @@ class ViewControllerFriends: UIViewController {
     
     //let dataStorage = DataStorage.dataStorage
     
+    @IBOutlet var buttonUpdateRealm: UIBarButtonItem!
+    @IBOutlet var buttonAddUser: UIBarButtonItem!
+    
     let resueViewForFotos = "resueViewForFotos"
     
     let alhabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t","u", "v", "w", "x", "y", "z", "а", "б", "в", "г", "д", "е", "ё", "к", "л", "м", "н", "о", "п", "р","с", "т", "у", "ф", "х", "ц", "ч", "ш", "щ", "ъ", "ы", "ь", "э", "ю", "я", "ж", "з", "и", "й"]
     
-    typealias typeStringUser = (symbol: String, user: [ProtocolUser])
+    typealias typeStringUser = (symbol: String, user: [Object])
     
     var arraySectionsOfUsers: [typeStringUser] = [typeStringUser]()
-    var allUsers: [ProtocolUser]!
+    var allUsers: [Object]!
+    var usersFromRealm: Results<User>?
     
     var shouldUpdateRealm = false
+    
+    var token: NotificationToken?
     
     @IBOutlet var tableView: UITableView!
     @IBOutlet var searchBar: UISearchBar!
@@ -47,12 +53,56 @@ class ViewControllerFriends: UIViewController {
         // Do any additional setup after loading the view.
     }
     
+    
+    @IBAction func pressUpdateRealm(_ sender: Any) {
+        loadUsersFromAPI()
+    }
+    
+    @IBAction func pressAddUser(_ sender: Any) {
+        let alert = UIAlertController(title: "Добавление пользователя", message: "Добавте нового пользователя", preferredStyle: .alert)
+        alert.addTextField(configurationHandler: nil)
+        alert.addTextField(configurationHandler: nil)
+        
+        alert.textFields?[0].placeholder = "name"
+        alert.textFields?[1].placeholder = "id"
+        
+        let buttonAdd = UIAlertAction(title: "Add user", style: .default) { [weak self] _ in
+            let name = alert.textFields?[0].text ?? ""
+            let id = alert.textFields?[1].text ?? ""
+            
+            guard let id = Int(id) else { return }
+            
+            self?.addUser(name: name, id: id)
+        }
+        
+        let buttonCancel = UIAlertAction(title: "Отмена", style: .cancel, handler: nil)
+        
+        alert.addAction(buttonAdd)
+        alert.addAction(buttonCancel)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    func addUser(name: String, id: Int) {
+            let newUsr = User(name: name, age: 1, idUser: id)
+            //newCity.name = name
+            do {
+                let realm = try Realm()
+                realm.beginWrite()
+                realm.add(newUsr, update: .all)
+                try realm.commitWrite()
+            } catch {
+                print(error)
+            }
+        }
+
+    
     private func fillTheUsers() {
         arraySectionsOfUsers.removeAll()
         for symbol in alhabet {
-            var usrArr = [ProtocolUser]()
+            var usrArr = [Object]()
             for user in allUsers.filter({ usr in
-                guard let symb = usr.name.first?.uppercased() else {
+                guard let usr = usr as? User,  let symb = usr.name.first?.uppercased() else {
                     return false
                 }
                 return symbol.uppercased() == symb
@@ -102,6 +152,13 @@ class ViewControllerFriends: UIViewController {
             return
         }
         
+        loadUsersFromAPI()
+        
+    }
+    
+    func loadUsersFromAPI() {
+        var loadingEnded = false
+        
         var urlComponents = URLComponents()
         urlComponents.scheme = "https"
         urlComponents.host = "api.vk.com"
@@ -112,8 +169,6 @@ class ViewControllerFriends: UIViewController {
             URLQueryItem(name: "fields", value: "first_name"),
             URLQueryItem(name: "v", value: "5.131")
         ]
-        
-        var loadingEnded = false
         
         guard let url = urlComponents.url else { return }
         
@@ -148,7 +203,7 @@ class ViewControllerFriends: UIViewController {
         DataStorage.dataStorage.subj.launchDownloads(.friends)
         DataStorage.dataStorage.subj.removeObserver(observer: self)
         
-        if shouldUpdateRealm {
+        if loadingEnded {
             updateDataForRealm()
         }
     }
@@ -157,15 +212,35 @@ class ViewControllerFriends: UIViewController {
         DataStorage.dataStorage.arrayUsers.removeAll()
         do {
             let realm = try Realm()
-            let data = realm.objects(User.self)
-            for usr in data {
+            usersFromRealm = realm.objects(User.self)
+            
+            guard let usersFromRealm = usersFromRealm else {
+                return
+            }
+            
+            self.token = usersFromRealm.observe({ [weak self] (changes: RealmCollectionChange) in
+                guard let tableView = self?.tableView else { return }
+                switch changes {
+                case .initial:
+                    tableView.reloadData()
+                case .update(let result, let deletions, let insertions, let modifications):
+                    tableView.reloadData()
+                case .error(let error):
+                    print(error)
+                }
+            })
+
+            
+            for usr in usersFromRealm {
                 DataStorage.dataStorage.arrayUsers.append(User(name: usr.name, age: 1, idUser: usr.idUser))
             }
         } catch {
-            shouldUpdateRealm = true
+            //shouldUpdateRealm = true
             print(error)
             return
         }
+        
+        shouldUpdateRealm = DataStorage.dataStorage.arrayUsers.isEmpty
         
         DataStorage.dataStorage.subj.launchDownloads(.friends)
     }
@@ -206,6 +281,21 @@ extension ViewControllerFriends: UITableViewDelegate {
         50
     }
     
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle,
+                   forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            let userForDel = usersFromRealm?[indexPath.row]
+            guard let userForDel = userForDel else { return }
+            do {
+                let realm = try Realm()
+                realm.beginWrite()
+                realm.delete(userForDel)
+                try realm.commitWrite()
+            } catch {
+                print(error)
+            }
+        }
+    }
     
 }
 
@@ -214,7 +304,7 @@ extension ViewControllerFriends: UITableViewDelegate {
 extension ViewControllerFriends: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         //dataStorage.arrayUsers.count
-        arraySectionsOfUsers[section].user.count
+        usersFromRealm?.count ?? 0//arraySectionsOfUsers[section].user.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -223,7 +313,9 @@ extension ViewControllerFriends: UITableViewDataSource {
             return UITableViewCell()
         }
         
-        let user = arraySectionsOfUsers[indexPath.section].user[indexPath.row]
+        let user = usersFromRealm?[indexPath.row]//arraySectionsOfUsers[indexPath.section].user[indexPath.row]
+        
+        guard let user = user else {  return UITableViewCell() }
             //dataStorage.arrayUsers[indexPath.row]
         
         cell.configure(textName: user.name, textAge: String(user.idUser), avatar: nil)
@@ -232,11 +324,11 @@ extension ViewControllerFriends: UITableViewDataSource {
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        arraySectionsOfUsers.count
+        1//arraySectionsOfUsers.count
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        arraySectionsOfUsers[section].symbol.uppercased()
+        nil//arraySectionsOfUsers[section].symbol.uppercased()
     }
     
 }
@@ -245,15 +337,15 @@ extension ViewControllerFriends: UITableViewDataSource {
 
 extension ViewControllerFriends: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchText.isEmpty {
-            allUsers = DataStorage.dataStorage.arrayUsers
-        } else {
-            allUsers = DataStorage.dataStorage.arrayUsers.filter({ usr in
-                usr.name.lowercased().contains(searchText.lowercased())
-            })
-        }
-        fillTheUsers()
-        tableView.reloadData()
+//        if searchText.isEmpty {
+//            allUsers = //DataStorage.dataStorage.arrayUsers
+//        } else {
+//            allUsers = DataStorage.dataStorage.arrayUsers.filter({ usr in
+//                usr.name.lowercased().contains(searchText.lowercased())
+//            })
+//        }
+//        fillTheUsers()
+//        tableView.reloadData()
     }
 }
 
@@ -263,8 +355,8 @@ extension ViewControllerFriends: Observer {
         guard let sub = subject as? Subject, sub.typeOfDownload == .friends else {
             return
         }
-        allUsers = DataStorage.dataStorage.arrayUsers
-        fillTheUsers()
+        //allUsers = DataStorage.dataStorage.arrayUsers
+        //fillTheUsers()
         self.tableView.reloadData()
     }
 }

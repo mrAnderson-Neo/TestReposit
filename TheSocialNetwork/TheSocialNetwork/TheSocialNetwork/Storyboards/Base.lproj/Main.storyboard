@@ -160,7 +160,7 @@
                     <navigationItem key="navigationItem" id="g3D-IN-tPy"/>
                     <connections>
                         <outlet property="buttonStartOfRequest" destination="Gnl-gP-mPV" id="3Oq-ij-Cll"/>
-                        <outlet property="buttonTestRealm" destination="TNU-3U-F2S" id="gzB-0C-0qb"/>
+                        <outlet property="buttonUpdateRealm" destination="TNU-3U-F2S" id="gzB-0C-0qb"/>
                         <outlet property="webview" destination="FUW-IR-zjb" id="unu-mT-haE"/>
                         <segue destination="WB1-cW-hL3" kind="show" id="1F2-PZ-meT"/>
                     </connections>
@@ -282,14 +282,22 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="Xih-u5-B9y">
-                        <barButtonItem key="rightBarButtonItem" title="Item" image="plus.circle" catalog="system" id="jlg-5H-0cV">
-                            <connections>
-                                <segue destination="WRn-HR-mBn" kind="show" identifier="fromGroupsToAllGroups" id="TlO-ba-nFh"/>
-                            </connections>
-                        </barButtonItem>
+                        <rightBarButtonItems>
+                            <barButtonItem title="Item" image="plus.circle" catalog="system" id="jlg-5H-0cV">
+                                <connections>
+                                    <segue destination="WRn-HR-mBn" kind="show" identifier="fromGroupsToAllGroups" id="TlO-ba-nFh"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem title="Update realm" id="9pE-F0-ugU">
+                                <connections>
+                                    <action selector="pressUpdateRealm:" destination="EeL-kI-Dym" id="JkD-YQ-Lj0"/>
+                                </connections>
+                            </barButtonItem>
+                        </rightBarButtonItems>
                     </navigationItem>
                     <connections>
                         <outlet property="buttonAllgroups" destination="jlg-5H-0cV" id="adZ-lB-Ykx"/>
+                        <outlet property="buttonUpdateRealm" destination="9pE-F0-ugU" id="gtF-WR-yIM"/>
                         <outlet property="tableView" destination="XoR-Fk-ThR" id="XL1-eS-IMj"/>
                     </connections>
                 </viewController>
@@ -368,8 +376,23 @@
                             <constraint firstItem="66A-iE-WRM" firstAttribute="trailing" secondItem="fME-tg-cl3" secondAttribute="trailing" id="yqJ-TB-KMu"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" id="VDJ-Z3-pcx"/>
+                    <navigationItem key="navigationItem" id="VDJ-Z3-pcx">
+                        <rightBarButtonItems>
+                            <barButtonItem title="Item" image="plus.circle.fill" catalog="system" id="U22-Dn-3tP">
+                                <connections>
+                                    <action selector="pressAddUser:" destination="1Xn-Ga-YsC" id="p8c-4x-DPu"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem title="Update realm" id="EtU-qK-AFr">
+                                <connections>
+                                    <action selector="pressUpdateRealm:" destination="1Xn-Ga-YsC" id="b0G-Uo-elH"/>
+                                </connections>
+                            </barButtonItem>
+                        </rightBarButtonItems>
+                    </navigationItem>
                     <connections>
+                        <outlet property="buttonAddUser" destination="U22-Dn-3tP" id="QTP-yc-W9o"/>
+                        <outlet property="buttonUpdateRealm" destination="EtU-qK-AFr" id="1Eh-WL-TCf"/>
                         <outlet property="searchBar" destination="66A-iE-WRM" id="Fe2-l9-w52"/>
                         <outlet property="tableView" destination="oG2-23-QjG" id="iiN-Bd-klx"/>
                     </connections>
@@ -523,6 +546,7 @@
     </scenes>
     <resources>
         <image name="plus.circle" catalog="system" width="128" height="121"/>
+        <image name="plus.circle.fill" catalog="system" width="128" height="121"/>
         <namedColor name="AccentColor">
             <color red="0.0" green="0.46000000000000002" blue="0.89000000000000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>

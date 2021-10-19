@@ -15,6 +15,8 @@ class TestEntity: Object {
     @objc dynamic var gender = true
     @objc dynamic var petName = ""
     
+    
+    
     override class func primaryKey() -> String? {
         return "id"
     }

@@ -12,7 +12,9 @@ class ViewControllerGroups: UIViewController {
     
     var arrayGroups = [ProtocolGroup]()
     @IBOutlet var buttonAllgroups: UIBarButtonItem!
+    @IBOutlet var buttonUpdateRealm: UIBarButtonItem!
     @IBOutlet var tableView: UITableView!
+    
     
     let resueSegue = "fromGroupsToAllGroups"
     
@@ -38,6 +40,11 @@ class ViewControllerGroups: UIViewController {
         
         //buttonAllgroups.add
         // Do any additional setup after loading the view.
+    }
+    
+    
+    @IBAction func pressUpdateRealm(_ sender: Any) {
+        loadGroupsFromApi()
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -67,13 +74,16 @@ class ViewControllerGroups: UIViewController {
     
     // MARK: - API
     func loadGroups(){
-        
         loadGroupsFromDataBase()
         
         if !DataStorage.dataStorage.arrayGroups.isEmpty {
             return
         }
         
+        loadGroupsFromApi()
+    }
+    
+    func loadGroupsFromApi() {
         var urlComponents = URLComponents()
         urlComponents.scheme = "https"
         urlComponents.host = "api.vk.com"
